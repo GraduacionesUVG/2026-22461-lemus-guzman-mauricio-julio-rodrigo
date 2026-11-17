@@ -1,0 +1,1528 @@
+version: 1
+proyecto:
+  nombre: VELTRIX Commerce - Campana QA 20261101 Q7M4
+  descripcion: Evaluacion funcional y monitoreo de VELTRIX Commerce en entorno local controlado. No ejecutar en
+    produccion.
+  tecnologia_referencial: React FastAPI Selenium
+  responsable: Trabajo Profesional de Graduacion UVG
+modulos_objetivo:
+- nombre: Autenticacion
+  descripcion: Login autorizado y control de acceso
+  critico: true
+- nombre: Navegacion
+  descripcion: Rutas y areas principales
+  critico: false
+- nombre: Clientes
+  descripcion: Datos ficticios propios de la campana
+  critico: false
+- nombre: Inventario
+  descripcion: Altas, consultas y existencias
+  critico: true
+- nombre: Ventas
+  descripcion: Registro, cancelacion e historial
+  critico: true
+- nombre: Monitoreo
+  descripcion: Disponibilidad y deteccion de fallos
+  critico: true
+entornos:
+- nombre: Laboratorio local VELTRIX Commerce
+  url_base: http://127.0.0.1:5350
+  zona_horaria: America/Guatemala
+  verificar_certificado_tls: true
+  tiempo_espera_segundos: 20
+casos_prueba:
+- nombre: CP-01 Autenticacion correcta
+  descripcion: Acceso autorizado y dashboard visible.
+  modulo_objetivo: Autenticacion
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP01_login_correcto
+    configuracion:
+      nombre: CP01_login_correcto
+    continuar_si_falla: false
+- nombre: CP-02 Autenticacion incorrecta
+  descripcion: Rechazo sin crear sesion.
+  modulo_objetivo: Autenticacion
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir /login
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Correo de prueba invalido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: qa.invalido@example.com
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Clave de prueba invalida
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      texto: ClaveInvalida-QA-2026
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar intento invalido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_texto
+    nombre: Comprobar rechazo
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form [role="alert"]
+      texto_esperado: Email o contraseña incorrectos
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 7
+    tipo: validar_url
+    nombre: Confirmar que permanece en login
+    configuracion:
+      url_esperada: /login
+      comparacion: contiene
+    continuar_si_falla: false
+  - orden: 8
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP02_rechazo_login
+    configuracion:
+      nombre: CP02_rechazo_login
+    continuar_si_falla: false
+- nombre: CP-03 Navegacion principal
+  descripcion: Navegacion a inventario y ventas sin alterar datos.
+  modulo_objetivo: Navegacion
+  prioridad: media
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: hacer_clic
+    nombre: Abrir inventario desde navegacion
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 9
+    tipo: esperar_texto
+    nombre: Comprobar inventario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: main h1
+      texto_esperado: Inventario
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: hacer_clic
+    nombre: Abrir ventas desde navegacion
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/ventas"]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: esperar_texto
+    nombre: Comprobar ventas
+    configuracion:
+      selector:
+        estrategia: css
+        valor: main h1
+      texto_esperado: Ventas
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 12
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP03_navegacion
+    configuracion:
+      nombre: CP03_navegacion
+    continuar_si_falla: false
+- nombre: CP-00 Crear cliente ficticio
+  descripcion: Crea un cliente exclusivo para identificar la venta propia del laboratorio.
+  modulo_objetivo: Clientes
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /clientes
+    configuracion:
+      ruta: /clientes
+    continuar_si_falla: false
+  - orden: 9
+    tipo: hacer_clic
+    nombre: Abrir nuevo cliente
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: (//main//button[normalize-space(.)='Nuevo cliente'])[1]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: esperar_elemento
+    nombre: Esperar formulario de cliente
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //h3[normalize-space(.)='Nuevo cliente']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: escribir
+    nombre: Ingresar nombre exclusivo
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Nombre']/following-sibling::input
+      texto: Cliente QA 20261101 Q7M4
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 12
+    tipo: escribir
+    nombre: Ingresar correo ficticio
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: qa.20261101.q7m4@example.com
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 13
+    tipo: hacer_clic
+    nombre: Guardar cliente de campana
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //form//button[@type='submit' and normalize-space(.)='Guardar']
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 14
+    tipo: esperar_texto
+    nombre: Confirmar alta de cliente
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //span[normalize-space(.)='Cliente agregado']
+      texto_esperado: Cliente agregado
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 15
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP00_cliente_ficticio
+    configuracion:
+      nombre: CP00_cliente_ficticio
+    continuar_si_falla: false
+- nombre: CP-04 Crear y consultar producto
+  descripcion: Crea producto ficticio, verifica SKU, stock inicial y persistencia.
+  modulo_objetivo: Inventario
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /productos
+    configuracion:
+      ruta: /productos
+    continuar_si_falla: false
+  - orden: 9
+    tipo: hacer_clic
+    nombre: Abrir alta de producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: (//main//button[normalize-space(.)='Nuevo producto'])[1]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: esperar_elemento
+    nombre: Esperar modal de producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //h3[normalize-space(.)='Nuevo producto']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: escribir
+    nombre: Ingresar nombre del producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Nombre']/following-sibling::input
+      texto: Producto QA 20261101 Q7M4
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 12
+    tipo: escribir
+    nombre: Ingresar SKU unico
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='SKU']/following-sibling::input
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 13
+    tipo: escribir
+    nombre: Ingresar precio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[starts-with(normalize-space(.),'Precio venta (')]/following-sibling::input
+      texto: '25.00'
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 14
+    tipo: escribir
+    nombre: Ingresar costo
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Costo']/following-sibling::input
+      texto: '10.00'
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 15
+    tipo: escribir
+    nombre: Ingresar stock inicial
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Stock']/following-sibling::input
+      texto: '10'
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 16
+    tipo: escribir
+    nombre: Ingresar umbral
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Alerta de stock bajo']/following-sibling::input
+      texto: '2'
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 17
+    tipo: escribir
+    nombre: Ingresar descripcion
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Descripción']/following-sibling::textarea
+      texto: Dato ficticio para evaluacion academica
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 18
+    tipo: hacer_clic
+    nombre: Guardar producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //form//button[@type='submit' and normalize-space(.)='Guardar']
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 19
+    tipo: esperar_elemento
+    nombre: Confirmar guardado del producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //span[normalize-space(.)='Producto guardado']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 20
+    tipo: esperar_elemento
+    nombre: Esperar buscador
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 21
+    tipo: escribir
+    nombre: Buscar SKU registrado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 22
+    tipo: esperar_elemento
+    nombre: Localizar tarjeta por SKU
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//div[contains(concat(' ',normalize-space(@class),' '),' card ')][.//p[normalize-space(.)='QA-20261101-Q7M4-P01']]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 23
+    tipo: esperar_elemento
+    nombre: Esperar stock inicial 10
+    configuracion:
+      selector: &id001
+        estrategia: xpath
+        valor: //main//div[contains(concat(' ',normalize-space(@class),' '),' card ')][.//p[normalize-space(.)='QA-20261101-Q7M4-P01']]//span[normalize-space(.)='10
+          en stock']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 24
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP04_stock_inicial_10
+    configuracion:
+      nombre: CP04_stock_inicial_10
+    continuar_si_falla: false
+  - orden: 25
+    tipo: recargar
+    nombre: Recargar para validar persistencia
+    configuracion: {}
+    continuar_si_falla: false
+  - orden: 26
+    tipo: esperar_elemento
+    nombre: Esperar inventario recargado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 27
+    tipo: escribir
+    nombre: Buscar SKU tras recarga
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 28
+    tipo: esperar_elemento
+    nombre: Verificar persistencia de stock 10
+    configuracion:
+      selector: *id001
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 29
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP04_producto_persistido
+    configuracion:
+      nombre: CP04_producto_persistido
+    continuar_si_falla: false
+- nombre: CP-05 Registrar venta y verificar descuento
+  descripcion: Venta ficticia de dos unidades y comprobacion de stock 10 a 8.
+  modulo_objetivo: Ventas
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /productos
+    configuracion:
+      ruta: /productos
+    continuar_si_falla: false
+  - orden: 9
+    tipo: esperar_elemento
+    nombre: Esperar inventario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: escribir
+    nombre: Buscar producto antes de vender
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: esperar_elemento
+    nombre: Verificar stock inicial 10 antes de vender
+    configuracion:
+      selector: *id001
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 12
+    tipo: navegar
+    nombre: Abrir /ventas
+    configuracion:
+      ruta: /ventas
+    continuar_si_falla: false
+  - orden: 13
+    tipo: hacer_clic
+    nombre: Abrir nueva venta
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: (//main//button[normalize-space(.)='Nueva venta'])[1]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 14
+    tipo: esperar_elemento
+    nombre: Esperar buscador POS
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar producto..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 15
+    tipo: escribir
+    nombre: Buscar SKU en POS
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar producto..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 16
+    tipo: hacer_clic
+    nombre: Agregar primera unidad
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[.//p[normalize-space(.)='Producto QA 20261101 Q7M4']]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 17
+    tipo: hacer_clic
+    nombre: Agregar segunda unidad
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[.//p[normalize-space(.)='Producto QA 20261101 Q7M4']]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 18
+    tipo: esperar_texto
+    nombre: Verificar dos unidades en carrito
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //div[contains(concat(' ',normalize-space(@class),' '),' shadow-sm ')][.//p[normalize-space(.)='Producto
+          QA 20261101 Q7M4']]//span[contains(concat(' ',normalize-space(@class),' '),' w-6 ')]
+      texto_esperado: '2'
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 19
+    tipo: seleccionar_opcion
+    nombre: Seleccionar cliente exclusivo
+    configuracion:
+      selector:
+        estrategia: css
+        valor: div.fixed.inset-0.z-50 select
+      metodo: texto_visible
+      valor: Cliente QA 20261101 Q7M4
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 20
+    tipo: hacer_clic
+    nombre: Registrar venta de laboratorio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[normalize-space(.)='Cobrar venta']
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 21
+    tipo: esperar_elemento
+    nombre: Confirmar registro de venta antes de navegar
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //span[normalize-space(.)='Venta registrada']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 22
+    tipo: navegar
+    nombre: Abrir /ventas
+    configuracion:
+      ruta: /ventas
+    continuar_si_falla: false
+  - orden: 23
+    tipo: esperar_elemento
+    nombre: Esperar fila unica del cliente exclusivo
+    configuracion:
+      selector: &id002
+        estrategia: xpath
+        valor: //main//tbody/tr[td[2][normalize-space(.)='Cliente QA 20261101 Q7M4']][count(../tr[td[2][normalize-space(.)='Cliente
+          QA 20261101 Q7M4']])=1]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 24
+    tipo: validar_elemento_visible
+    nombre: Verificar venta identificada sin ambiguedad
+    configuracion:
+      selector: *id002
+    continuar_si_falla: false
+  - orden: 25
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP05_venta_registrada
+    configuracion:
+      nombre: CP05_venta_registrada
+    continuar_si_falla: false
+  - orden: 26
+    tipo: navegar
+    nombre: Abrir /productos
+    configuracion:
+      ruta: /productos
+    continuar_si_falla: false
+  - orden: 27
+    tipo: esperar_elemento
+    nombre: Esperar inventario tras venta
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 28
+    tipo: escribir
+    nombre: Buscar producto vendido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 29
+    tipo: esperar_elemento
+    nombre: Esperar reduccion a ocho unidades
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//div[contains(concat(' ',normalize-space(@class),' '),' card ')][.//p[normalize-space(.)='QA-20261101-Q7M4-P01']]//span[normalize-space(.)='8
+          en stock']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 30
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP05_stock_reducido_8
+    configuracion:
+      nombre: CP05_stock_reducido_8
+    continuar_si_falla: false
+- nombre: CP-06 Cancelar venta propia y restituir stock
+  descripcion: Flujo condicionado a validar el manejo de confirm nativa en ChromeDriver. No ejecutar hasta verificar
+    en laboratorio.
+  modulo_objetivo: Ventas
+  prioridad: alta
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /ventas
+    configuracion:
+      ruta: /ventas
+    continuar_si_falla: false
+  - orden: 9
+    tipo: esperar_elemento
+    nombre: Encontrar una sola venta del cliente de campana
+    configuracion:
+      selector: *id002
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: hacer_clic
+    nombre: Abrir exclusivamente la venta ficticia propia
+    configuracion:
+      selector: *id002
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: esperar_elemento
+    nombre: Verificar producto propio en detalle de venta
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//*[self::p or self::span or self::td][normalize-space(.)='Producto QA 20261101 Q7M4']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 12
+    tipo: hacer_clic
+    nombre: Solicitar cancelacion de venta propia
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[contains(concat(' ',normalize-space(@class),' '),' btn-danger ') and normalize-space(.)='Cancelar']
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 13
+    tipo: aceptar_alerta
+    nombre: Confirmar cancelacion nativa
+    configuracion:
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 14
+    tipo: esperar_elemento
+    nombre: Esperar fila de la venta despues de cancelar
+    configuracion:
+      selector: &id003
+        estrategia: xpath
+        valor: //main//tbody/tr[td[2][normalize-space(.)='Cliente QA 20261101 Q7M4']][count(../tr[td[2][normalize-space(.)='Cliente
+          QA 20261101 Q7M4']])=1]/td[6]/span
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 15
+    tipo: esperar_texto
+    nombre: Esperar estado Cancelada
+    configuracion:
+      selector: *id003
+      texto_esperado: Cancelada
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 16
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP06_venta_cancelada
+    configuracion:
+      nombre: CP06_venta_cancelada
+    continuar_si_falla: false
+  - orden: 17
+    tipo: navegar
+    nombre: Abrir /productos
+    configuracion:
+      ruta: /productos
+    continuar_si_falla: false
+  - orden: 18
+    tipo: esperar_elemento
+    nombre: Esperar inventario actualizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 19
+    tipo: escribir
+    nombre: Buscar SKU tras cancelacion
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: QA-20261101-Q7M4-P01
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 20
+    tipo: esperar_elemento
+    nombre: Esperar restitucion del stock a diez
+    configuracion:
+      selector: *id001
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 21
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP06_stock_restituido_10
+    configuracion:
+      nombre: CP06_stock_restituido_10
+    continuar_si_falla: false
+- nombre: CP-07 Verificar historial de venta cancelada
+  descripcion: Verifica el estado historico Cancelada de la venta propia.
+  modulo_objetivo: Ventas
+  prioridad: media
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /ventas
+    configuracion:
+      ruta: /ventas
+    continuar_si_falla: false
+  - orden: 9
+    tipo: esperar_elemento
+    nombre: Esperar venta exclusiva en historial
+    configuracion:
+      selector: *id002
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: esperar_texto
+    nombre: Esperar estado cancelado
+    configuracion:
+      selector: *id003
+      texto_esperado: Cancelada
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: validar_texto
+    nombre: Confirmar estado final de la venta
+    configuracion:
+      selector: *id003
+      texto_esperado: Cancelada
+      comparacion: igual
+    continuar_si_falla: false
+  - orden: 12
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP07_historial_cancelado
+    configuracion:
+      nombre: CP07_historial_cancelado
+    continuar_si_falla: false
+- nombre: CP-08 Validacion de formulario obligatorio
+  descripcion: Comprueba que los campos obligatorios existen y que un intento vacio no sale de alta de producto.
+  modulo_objetivo: Inventario
+  prioridad: media
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir inicio de sesion
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: esperar_elemento
+    nombre: Esperar formulario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar correo autorizado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="email"]
+      texto: usuario@example.invalid
+    continuar_si_falla: false
+  - orden: 4
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form input[type="password"]
+      secreto: REEMPLAZAR_SECRETO_LOCAL
+    continuar_si_falla: false
+  - orden: 5
+    tipo: hacer_clic
+    nombre: Enviar credenciales
+    configuracion:
+      selector:
+        estrategia: css
+        valor: form button[type="submit"]
+    continuar_si_falla: false
+  - orden: 6
+    tipo: esperar_elemento
+    nombre: Confirmar navegacion autenticada
+    configuracion:
+      selector:
+        estrategia: css
+        valor: nav a[href="/productos"]
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 7
+    tipo: esperar_elemento
+    nombre: Esperar informacion del dashboard
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //main//h3[normalize-space(.)='Ventas por día']
+      condicion: visible
+    continuar_si_falla: false
+  - orden: 8
+    tipo: navegar
+    nombre: Abrir /productos
+    configuracion:
+      ruta: /productos
+    continuar_si_falla: false
+  - orden: 9
+    tipo: hacer_clic
+    nombre: Abrir formulario vacio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: (//main//button[normalize-space(.)='Nuevo producto'])[1]
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 10
+    tipo: esperar_elemento
+    nombre: Esperar modal
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //h3[normalize-space(.)='Nuevo producto']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 11
+    tipo: validar_atributo
+    nombre: Verificar nombre obligatorio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Nombre']/following-sibling::input
+      atributo: required
+      valor_esperado: 'true'
+      comparacion: igual
+    continuar_si_falla: false
+  - orden: 12
+    tipo: validar_atributo
+    nombre: Verificar SKU obligatorio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='SKU']/following-sibling::input
+      atributo: required
+      valor_esperado: 'true'
+      comparacion: igual
+    continuar_si_falla: false
+  - orden: 13
+    tipo: hacer_clic
+    nombre: Intentar guardar formulario vacio
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //form//button[@type='submit' and normalize-space(.)='Guardar']
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 14
+    tipo: esperar_elemento
+    nombre: Confirmar que el formulario sigue abierto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //h3[normalize-space(.)='Nuevo producto']
+      condicion: visible
+      timeout_segundos: 20
+    continuar_si_falla: false
+  - orden: 15
+    tipo: capturar_evidencia
+    nombre: Guardar evidencia CP08_validacion_formulario
+    configuracion:
+      nombre: CP08_validacion_formulario
+    continuar_si_falla: false
+- nombre: CP-10 Fallo controlado de asercion
+  descripcion: Prueba deliberadamente fallida y separada para verificar deteccion. Nunca confundirla con defecto
+    de VELTRIX Commerce.
+  modulo_objetivo: Monitoreo
+  prioridad: media
+  requiere_revision_humana: false
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir /login
+    configuracion:
+      ruta: /login
+    continuar_si_falla: false
+  - orden: 2
+    tipo: validar_titulo
+    nombre: Provocar asercion textual falsa controlada
+    configuracion:
+      titulo_esperado: TITULO_INEXISTENTE_CONTROLADO_QA
+      comparacion: igual
+      timeout_segundos: 5
+    continuar_si_falla: false
+monitores:
+- nombre: MON-01 HTTP login VELTRIX Commerce
+  tipo: http
+  configuracion:
+    ruta: /login
+    metodo: GET
+    estado_esperado: 200
+    texto_esperado: Veltrix
+  intervalo_recomendado_segundos: 300
+- nombre: MON-02 API salud backend
+  tipo: api
+  configuracion:
+    url: http://127.0.0.1:8000/api/health
+    metodo: GET
+    estados_esperados:
+    - 200
+    texto_esperado: '"status":"ok"'
+    tiempo_espera: 10
+  intervalo_recomendado_segundos: 300
+- nombre: MON-03 API salud via proxy
+  tipo: api
+  configuracion:
+    url: http://127.0.0.1:5350/api/health
+    metodo: GET
+    estados_esperados:
+    - 200
+    texto_esperado: '"status":"ok"'
+    tiempo_espera: 10
+  intervalo_recomendado_segundos: 300
+- nombre: MON-04 TCP frontend
+  tipo: tcp
+  configuracion:
+    host: 127.0.0.1
+    puerto: 5350
+    tiempo_espera: 5
+  intervalo_recomendado_segundos: 300
+- nombre: MON-05 TCP backend
+  tipo: tcp
+  configuracion:
+    host: 127.0.0.1
+    puerto: 8000
+    tiempo_espera: 5
+  intervalo_recomendado_segundos: 300
+pipelines:
+- nombre: P01 Disponibilidad VELTRIX Commerce
+  descripcion: Comprobaciones no destructivas HTTP, API y TCP.
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: monitor
+    referencia: MON-01 HTTP login VELTRIX Commerce
+    nombre: MON-01 HTTP login VELTRIX Commerce
+    continuar_si_falla: false
+  - orden: 2
+    tipo: monitor
+    referencia: MON-02 API salud backend
+    nombre: MON-02 API salud backend
+    continuar_si_falla: false
+  - orden: 3
+    tipo: monitor
+    referencia: MON-03 API salud via proxy
+    nombre: MON-03 API salud via proxy
+    continuar_si_falla: false
+  - orden: 4
+    tipo: monitor
+    referencia: MON-04 TCP frontend
+    nombre: MON-04 TCP frontend
+    continuar_si_falla: false
+  - orden: 5
+    tipo: monitor
+    referencia: MON-05 TCP backend
+    nombre: MON-05 TCP backend
+    continuar_si_falla: false
+- nombre: P02 Acceso navegacion validacion
+  descripcion: Acceso, rechazo, navegacion y validacion de formulario.
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-01 Autenticacion correcta
+    nombre: CP-01 Autenticacion correcta
+    continuar_si_falla: false
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-02 Autenticacion incorrecta
+    nombre: CP-02 Autenticacion incorrecta
+    continuar_si_falla: false
+  - orden: 3
+    tipo: caso_prueba
+    referencia: CP-03 Navegacion principal
+    nombre: CP-03 Navegacion principal
+    continuar_si_falla: false
+  - orden: 4
+    tipo: caso_prueba
+    referencia: CP-08 Validacion de formulario obligatorio
+    nombre: CP-08 Validacion de formulario obligatorio
+    continuar_si_falla: false
+- nombre: P03 Ciclo crear cliente producto y venta
+  descripcion: Datos ficticios identificados; stock 10 y venta de dos unidades.
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-00 Crear cliente ficticio
+    nombre: CP-00 Crear cliente ficticio
+    continuar_si_falla: false
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-04 Crear y consultar producto
+    nombre: CP-04 Crear y consultar producto
+    continuar_si_falla: false
+  - orden: 3
+    tipo: caso_prueba
+    referencia: CP-05 Registrar venta y verificar descuento
+    nombre: CP-05 Registrar venta y verificar descuento
+    continuar_si_falla: false
+- nombre: P04 Cancelacion y restitucion condicional
+  descripcion: Ejecutar solo en laboratorio tras comprobar el manejo de confirm nativa.
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-06 Cancelar venta propia y restituir stock
+    nombre: CP-06 Cancelar venta propia y restituir stock
+    continuar_si_falla: false
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-07 Verificar historial de venta cancelada
+    nombre: CP-07 Verificar historial de venta cancelada
+    continuar_si_falla: false
+- nombre: P05 Deteccion de fallo controlado
+  descripcion: Este pipeline debe terminar fallido deliberadamente.
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-10 Fallo controlado de asercion
+    nombre: CP-10 Fallo controlado de asercion
+    continuar_si_falla: false
+programaciones: []

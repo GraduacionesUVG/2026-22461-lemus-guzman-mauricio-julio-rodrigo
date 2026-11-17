@@ -1,0 +1,827 @@
+# Veltrix Commerce - configuracion local revisada (UVG)
+# Validada como YAML y con referencias internas consistentes.
+# IMPORTANTE: esta configuracion contiene CP-01, CP-02, CP-03 y CP-11,
+# monitoreo HTTP/TCP/API, mas un fallo controlado CP-10.
+# NO implementa CP-04, CP-05, CP-06 ni CP-12 como pruebas integrales.
+# CP-07 es una comprobacion HTTP, no verifica visibilidad de productos.
+# Antes de ejecutar CP-01/03/11, configurar secreto veltrix_owner_password.
+# Antes de ejecutar Pipeline 02/03 verificar la ruta del catalogo publico.
+# Pipeline 04 es intencionalmente negativo, NO usar como smoke test.
+version: 1
+proyecto:
+  nombre: Veltrix Commerce campaña experimental
+  descripcion: Campaña experimental UVG con escenarios funcionales, monitoreo, fallos controlados y alertas
+  tecnologia_referencial: FastAPI + React + PostgreSQL
+  responsable: Trabajo de Graduacion UVG
+entornos:
+- nombre: laboratorio local
+  url_base: http://127.0.0.1:5350
+  zona_horaria: America/Guatemala
+  verificar_certificado_tls: false
+  tiempo_espera_segundos: 15
+modulos_objetivo:
+- nombre: Autenticacion
+  critico: true
+- nombre: Navegacion
+  critico: true
+- nombre: Inventario y ventas
+  critico: true
+- nombre: Catalogo publico
+  critico: true
+- nombre: Monitoreo
+  critico: true
+- nombre: Alertas
+  critico: true
+secretos_requeridos:
+- veltrix_owner_password
+casos_prueba:
+- nombre: CP-01 Autenticacion exitosa propietario
+  modulo_objetivo: Autenticacion
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar dashboard
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: validar_texto
+    nombre: Validar tienda Aurora
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'Aurora Boutique')]
+      texto_esperado: Aurora Boutique
+  - orden: 7
+    tipo: capturar_evidencia
+    nombre: Captura dashboard autenticado
+    configuracion:
+      nombre: CP01_dashboard_aurora
+- nombre: CP-02 Autenticacion incorrecta
+  modulo_objetivo: Autenticacion
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo valido no registrado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario.invalido@example.com
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena invalida
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      texto: REEMPLAZAR_SECRETO_LOCAL
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar mensaje de credenciales invalidas
+    configuracion:
+      selector:
+        estrategia: css
+        valor: '[role="alert"]'
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: validar_texto
+    nombre: Verificar el mensaje de rechazo
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: Email o contraseña incorrectos
+  - orden: 7
+    tipo: esperar_url
+    nombre: Verificar que sigue en login
+    configuracion:
+      texto_url: /login
+      comparacion: contiene
+      timeout_segundos: 10
+  - orden: 8
+    tipo: capturar_evidencia
+    nombre: Captura rechazo login
+    configuracion:
+      nombre: CP02_rechazo_login
+- nombre: CP-03 Navegacion entre modulos
+  modulo_objetivo: Navegacion
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar dashboard para navegar
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: hacer_clic
+    nombre: Abrir ventas
+    configuracion:
+      selector:
+        estrategia: link_text
+        valor: Ventas
+  - orden: 7
+    tipo: validar_texto
+    nombre: Validar modulo ventas
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'ventas registradas')]
+      texto_esperado: ventas registradas
+  - orden: 8
+    tipo: hacer_clic
+    nombre: Abrir inventario
+    configuracion:
+      selector:
+        estrategia: link_text
+        valor: Inventario
+  - orden: 9
+    tipo: validar_texto
+    nombre: Validar inventario
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'productos en catálogo')]
+      texto_esperado: productos
+  - orden: 10
+    tipo: hacer_clic
+    nombre: Abrir clientes
+    configuracion:
+      selector:
+        estrategia: link_text
+        valor: Clientes
+  - orden: 11
+    tipo: validar_texto
+    nombre: Validar clientes
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'clientes registrados')]
+      texto_esperado: clientes
+  - orden: 12
+    tipo: hacer_clic
+    nombre: Abrir categorias
+    configuracion:
+      selector:
+        estrategia: link_text
+        valor: Categorías
+  - orden: 13
+    tipo: validar_texto
+    nombre: Validar categorias
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'Organiza tu catálogo')]
+      texto_esperado: Organiza
+  - orden: 14
+    tipo: capturar_evidencia
+    nombre: Captura navegacion
+    configuracion:
+      nombre: CP03_navegacion_modulos
+- nombre: CP-04 Crear y consultar producto ficticio UVG
+  modulo_objetivo: Inventario y ventas
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar dashboard
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: navegar
+    nombre: Abrir inventario
+    configuracion:
+      ruta: /productos
+  - orden: 7
+    tipo: hacer_clic
+    nombre: Nuevo producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[contains(normalize-space(.), 'Nuevo producto')]
+  - orden: 8
+    tipo: escribir
+    nombre: Nombre producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Nombre']/following::input[1]
+      texto: Producto UVG QA CP04
+  - orden: 9
+    tipo: escribir
+    nombre: SKU producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='SKU']/following::input[1]
+      texto: UVG-QA-CP04-001
+  - orden: 10
+    tipo: escribir
+    nombre: Precio producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[contains(normalize-space(.), 'Precio venta')]/following::input[1]
+      texto: '25.50'
+  - orden: 11
+    tipo: escribir
+    nombre: Costo producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Costo']/following::input[1]
+      texto: '10.00'
+  - orden: 12
+    tipo: escribir
+    nombre: Stock producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Stock']/following::input[1]
+      texto: '8'
+  - orden: 13
+    tipo: escribir
+    nombre: Descripcion producto UVG
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //label[normalize-space(.)='Descripción']/following::textarea[1]
+      texto: Dato ficticio de campania UVG para CP-04.
+  - orden: 14
+    tipo: hacer_clic
+    nombre: Guardar producto
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: (//button[normalize-space(.)='Guardar'])[last()]
+  - orden: 15
+    tipo: esperar_elemento
+    nombre: Consultar producto creado
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //*[contains(normalize-space(.), 'Producto UVG QA CP04')]
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 16
+    tipo: capturar_evidencia
+    nombre: Captura producto creado
+    configuracion:
+      nombre: CP04_producto_uvg_creado
+- nombre: CP-05 Registrar venta y verificar inventario
+  modulo_objetivo: Inventario y ventas
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar dashboard
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: navegar
+    nombre: Abrir ventas
+    configuracion:
+      ruta: /ventas
+  - orden: 7
+    tipo: hacer_clic
+    nombre: Nueva venta
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[contains(normalize-space(.), 'Nueva venta')]
+  - orden: 8
+    tipo: escribir
+    nombre: Buscar producto CP04
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar producto..."]
+      texto: Producto UVG QA CP04
+  - orden: 9
+    tipo: hacer_clic
+    nombre: Agregar producto al carrito
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[.//*[contains(normalize-space(.), 'Producto UVG QA CP04')]]
+  - orden: 10
+    tipo: hacer_clic
+    nombre: Cobrar venta
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[contains(normalize-space(.), 'Cobrar venta')]
+  - orden: 11
+    tipo: navegar
+    nombre: Regresar a inventario
+    configuracion:
+      ruta: /productos
+  - orden: 12
+    tipo: escribir
+    nombre: Buscar producto vendido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: Producto UVG QA CP04
+  - orden: 13
+    tipo: validar_texto
+    nombre: Verificar descuento de inventario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: 7 en stock
+  - orden: 14
+    tipo: capturar_evidencia
+    nombre: Captura inventario despues de venta
+    configuracion:
+      nombre: CP05_stock_disminuido
+- nombre: CP-06 Cancelar venta y verificar restitucion
+  modulo_objetivo: Inventario y ventas
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Esperar dashboard
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: navegar
+    nombre: Abrir ventas
+    configuracion:
+      ruta: /ventas
+  - orden: 7
+    tipo: hacer_clic
+    nombre: Abrir venta mas reciente
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //tbody/tr[1]
+  - orden: 8
+    tipo: hacer_clic
+    nombre: Cancelar venta
+    configuracion:
+      selector:
+        estrategia: xpath
+        valor: //button[contains(normalize-space(.), 'Cancelar')]
+  - orden: 9
+    tipo: aceptar_alerta
+    nombre: Confirmar cancelacion
+    configuracion: {}
+  - orden: 10
+    tipo: navegar
+    nombre: Regresar a inventario
+    configuracion:
+      ruta: /productos
+  - orden: 11
+    tipo: escribir
+    nombre: Buscar producto restituido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[placeholder="Buscar por nombre o SKU..."]
+      texto: Producto UVG QA CP04
+  - orden: 12
+    tipo: validar_texto
+    nombre: Verificar stock restituido
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: 8 en stock
+  - orden: 13
+    tipo: capturar_evidencia
+    nombre: Captura inventario restituido
+    configuracion:
+      nombre: CP06_stock_restituido
+- nombre: CP-07 Catalogo publico con contenido visible
+  modulo_objetivo: Catalogo publico
+  prioridad: alta
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir API publica de productos
+    configuracion:
+      url: http://127.0.0.1:8000/api/public/aurora/products
+  - orden: 2
+    tipo: validar_texto
+    nombre: Verificar producto publico
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: name
+  - orden: 3
+    tipo: validar_texto
+    nombre: Verificar stock publicado
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: stock
+  - orden: 4
+    tipo: capturar_evidencia
+    nombre: Captura catalogo publico
+    configuracion:
+      nombre: CP07_catalogo_publico_contenido
+- nombre: CP-12 Verificar alerta por fallo controlado
+  modulo_objetivo: Alertas
+  prioridad: alta
+  requiere_revision_humana: true
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Confirmar dashboard operativo
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: validar_texto
+    nombre: Generar incumplimiento controlado para alerta
+    continuar_si_falla: true
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: Alerta funcional inexistente UVG
+      timeout_segundos: 5
+  - orden: 7
+    tipo: capturar_evidencia
+    nombre: Captura del fallo controlado CP12
+    configuracion:
+      nombre: CP12_alerta_fallo_controlado
+- nombre: CP-11 Deteccion de asercion negativa controlada
+  modulo_objetivo: Alertas
+  prioridad: alta
+  requiere_revision_humana: true
+  pasos:
+  - orden: 1
+    tipo: navegar
+    nombre: Abrir login
+    configuracion:
+      ruta: /login
+  - orden: 2
+    tipo: escribir
+    nombre: Ingresar correo propietario
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="email"]
+      texto: usuario@example.invalid
+  - orden: 3
+    tipo: escribir
+    nombre: Ingresar contrasena desde secreto
+    configuracion:
+      selector:
+        estrategia: css
+        valor: input[type="password"]
+      secreto: veltrix_owner_password
+  - orden: 4
+    tipo: hacer_clic
+    nombre: Enviar login
+    configuracion:
+      selector:
+        estrategia: css
+        valor: button[type="submit"]
+  - orden: 5
+    tipo: esperar_elemento
+    nombre: Confirmar dashboard antes del control
+    configuracion:
+      selector:
+        estrategia: texto
+        valor: Dashboard
+      condicion: visible
+      timeout_segundos: 15
+  - orden: 6
+    tipo: capturar_evidencia
+    nombre: Captura previa a la asercion negativa
+    configuracion:
+      nombre: CP11_estado_antes_de_fallo
+  - orden: 7
+    tipo: validar_texto
+    nombre: Provocar asercion negativa del detector
+    configuracion:
+      selector:
+        estrategia: css
+        valor: body
+      texto_esperado: Texto funcional inexistente UVG
+      timeout_segundos: 5
+monitores:
+- nombre: CP-08 Salud API Veltrix
+  tipo: http
+  configuracion:
+    url: http://127.0.0.1:8000/api/health
+    metodo: GET
+    estados_esperados:
+    - 200
+    texto_esperado: ok
+- nombre: Disponibilidad frontend Veltrix
+  tipo: http
+  configuracion:
+    url: http://127.0.0.1:5350/
+    metodo: GET
+    estados_esperados:
+    - 200
+- nombre: CP-09 TCP backend Veltrix
+  tipo: tcp
+  configuracion:
+    host: 127.0.0.1
+    puerto: 8000
+    tiempo_espera: 5
+- nombre: CP-09 TCP frontend Veltrix
+  tipo: tcp
+  configuracion:
+    host: 127.0.0.1
+    puerto: 5350
+    tiempo_espera: 5
+- nombre: CP-07 API catalogo publico Aurora (disponibilidad)
+  tipo: api
+  configuracion:
+    url: http://127.0.0.1:8000/api/public/aurora/products
+    metodo: GET
+    estados_esperados:
+    - 200
+    texto_esperado: name
+    tiempo_espera: 15
+- nombre: CP-10 Falla controlada servicio auxiliar
+  tipo: api
+  configuracion:
+    url: http://127.0.0.1:8766/health
+    metodo: GET
+    estados_esperados:
+    - 200
+    tiempo_espera: 3
+pipelines:
+- nombre: Pipeline 01 Autenticacion y navegacion
+  detener_ante_fallo: false
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-02 Autenticacion incorrecta
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-01 Autenticacion exitosa propietario
+  - orden: 3
+    tipo: caso_prueba
+    referencia: CP-03 Navegacion entre modulos
+- nombre: Pipeline 02 Catalogo publico
+  detener_ante_fallo: false
+  pasos:
+  - orden: 1
+    tipo: monitor
+    referencia: CP-07 API catalogo publico Aurora (disponibilidad)
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-07 Catalogo publico con contenido visible
+- nombre: Pipeline 03 Monitoreo
+  detener_ante_fallo: false
+  pasos:
+  - orden: 1
+    tipo: monitor
+    referencia: CP-08 Salud API Veltrix
+  - orden: 2
+    tipo: monitor
+    referencia: Disponibilidad frontend Veltrix
+  - orden: 3
+    tipo: monitor
+    referencia: CP-09 TCP backend Veltrix
+  - orden: 4
+    tipo: monitor
+    referencia: CP-09 TCP frontend Veltrix
+  - orden: 5
+    tipo: monitor
+    referencia: CP-07 API catalogo publico Aurora (disponibilidad)
+- nombre: Pipeline 04 Fallos controlados y alertas
+  detener_ante_fallo: false
+  pasos:
+  - orden: 1
+    tipo: monitor
+    referencia: CP-10 Falla controlada servicio auxiliar
+    continuar_si_falla: true
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-11 Deteccion de asercion negativa controlada
+    continuar_si_falla: true
+  - orden: 3
+    tipo: caso_prueba
+    referencia: CP-12 Verificar alerta por fallo controlado
+    continuar_si_falla: true
+- nombre: Pipeline 05 Inventario y ventas UVG
+  detener_ante_fallo: true
+  pasos:
+  - orden: 1
+    tipo: caso_prueba
+    referencia: CP-04 Crear y consultar producto ficticio UVG
+  - orden: 2
+    tipo: caso_prueba
+    referencia: CP-05 Registrar venta y verificar inventario
+  - orden: 3
+    tipo: caso_prueba
+    referencia: CP-06 Cancelar venta y verificar restitucion
+programaciones: []

@@ -1,0 +1,84 @@
+version: 1
+proyecto:
+  nombre: Portal de demostracion
+  descripcion: Validacion funcional y monitoreo basico del sistema objetivo local
+  tecnologia_referencial: Flask
+entornos:
+  - nombre: demostracion
+    url_base: http://localhost:5000/demo-objetivo
+    zona_horaria: America/Guatemala
+    verificar_certificado_tls: true
+    tiempo_espera_segundos: 15
+modulos_objetivo:
+  - nombre: Autenticacion
+    critico: true
+secretos_requeridos:
+  - usuario_demo
+  - contrasena_demo
+casos_prueba:
+  - nombre: Inicio de sesion con fallo conocido
+    modulo_objetivo: Autenticacion
+    prioridad: alta
+    pasos:
+      - orden: 1
+        tipo: navegar
+        nombre: Abrir inicio de sesion
+        configuracion:
+          ruta: /login
+      - orden: 2
+        tipo: escribir
+        nombre: Ingresar usuario
+        configuracion:
+          selector:
+            estrategia: id
+            valor: correo
+          texto: demo@example.com
+      - orden: 3
+        tipo: escribir
+        nombre: Ingresar contrasena
+        configuracion:
+          selector:
+            estrategia: id
+            valor: contrasena
+          secreto: contrasena_demo
+      - orden: 4
+        tipo: hacer_clic
+        nombre: Enviar formulario
+        configuracion:
+          selector:
+            estrategia: css
+            valor: button[type="submit"]
+      - orden: 5
+        tipo: validar_texto
+        nombre: Validar panel esperado
+        configuracion:
+          selector:
+            estrategia: css
+            valor: main h1
+          texto_esperado: Panel principal
+monitores:
+  - nombre: Disponibilidad demo
+    tipo: http
+    configuracion:
+      ruta: /health
+      metodo: GET
+      estados_esperados:
+        - 200
+      tiempo_maximo_milisegundos: 2000
+pipelines:
+  - nombre: Validacion demo
+    detener_ante_fallo: false
+    pasos:
+      - orden: 1
+        tipo: monitor
+        referencia: Disponibilidad demo
+      - orden: 2
+        tipo: caso_prueba
+        referencia: Inicio de sesion con fallo conocido
+programaciones:
+  - nombre: Ejecucion diaria demo
+    pipeline: Validacion demo
+    frecuencia:
+      tipo: diaria
+      hora: "06:00"
+    zona_horaria: America/Guatemala
