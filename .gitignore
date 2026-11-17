@@ -1,0 +1,91 @@
+# Entornos, credenciales y claves privadas
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+**/Credenciales.txt
+# Dependencias y caches
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# Salidas locales y temporales
+.logs/
+*.log
+*.pid
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+src/frontend/dist/
+src/frontend/.vite/
+*.tsbuildinfo
+src/frontend/vite.config.js
+src/frontend/vite.config.d.ts
+# Bases operativas y respaldos
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+src/backend/instance/
+src/almacenamiento/respaldos_limpieza/
+# Evidencias e informes generados, conservando los directorios
+src/almacenamiento/evidencias/*
+!src/almacenamiento/evidencias/.gitkeep
+src/almacenamiento/informes/*
+!src/almacenamiento/informes/.gitkeep
+src/backend/almacenamiento/evidencias/*
+!src/backend/almacenamiento/evidencias/.gitkeep
+src/backend/almacenamiento/informes/*
+!src/backend/almacenamiento/informes/.gitkeep
+src/evaluacion_veltrix/resultados/*
+!src/evaluacion_veltrix/resultados/.gitkeep
+# Documentacion Markdown del codigo original excluida de la entrega
+src/**/*.md
+src/**/*.markdown
+src/**/*.mdown
+src/**/*.mkd
+# Exportaciones de autenticacion y sesiones locales
+cookies.json
+cookies.txt
+storageState.json
+storage-state.json
+credentials.json
+credentials.txt
+tokens.json
+tokens.txt
+.netrc
+*.har
+playwright/.auth/
+
+# Variantes de archivos locales de secretos y autenticacion
+*.env
+credentials.yaml
+credentials.yml
+credentials.ini
+secrets.json
+secrets.yaml
+secrets.yml
+session.json
+auth.json
+token.json
+id_rsa
+id_ed25519
+*.ppk

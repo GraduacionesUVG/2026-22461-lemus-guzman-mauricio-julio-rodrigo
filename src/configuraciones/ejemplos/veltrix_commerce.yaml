@@ -1,0 +1,349 @@
+version: 1
+proyecto:
+  nombre: Veltrix Commerce campaña experimental
+  descripcion: Campaña experimental UVG con escenarios funcionales, monitoreo, fallos controlados y alertas
+  tecnologia_referencial: FastAPI + React + PostgreSQL
+  responsable: Trabajo de Graduacion UVG
+entornos:
+  - nombre: laboratorio local
+    url_base: http://127.0.0.1:5350
+    zona_horaria: America/Guatemala
+    verificar_certificado_tls: false
+    tiempo_espera_segundos: 15
+modulos_objetivo:
+  - nombre: Autenticacion
+    critico: true
+  - nombre: Navegacion
+    critico: true
+  - nombre: Inventario y ventas
+    critico: true
+  - nombre: Catalogo publico
+    critico: true
+  - nombre: Monitoreo
+    critico: true
+  - nombre: Alertas
+    critico: true
+secretos_requeridos:
+  - veltrix_owner_password
+casos_prueba:
+  - nombre: CP-01 Autenticacion exitosa propietario
+    modulo_objetivo: Autenticacion
+    prioridad: alta
+    pasos:
+      - orden: 1
+        tipo: navegar
+        nombre: Abrir login
+        configuracion:
+          ruta: /login
+      - orden: 2
+        tipo: escribir
+        nombre: Ingresar correo propietario
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="email"]
+          texto: usuario@example.invalid
+      - orden: 3
+        tipo: escribir
+        nombre: Ingresar contrasena desde secreto
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="password"]
+          secreto: veltrix_owner_password
+      - orden: 4
+        tipo: hacer_clic
+        nombre: Enviar login
+        configuracion:
+          selector:
+            estrategia: css
+            valor: button[type="submit"]
+      - orden: 5
+        tipo: esperar_elemento
+        nombre: Esperar dashboard
+        configuracion:
+          selector:
+            estrategia: texto
+            valor: Dashboard
+          condicion: visible
+          timeout_segundos: 15
+      - orden: 6
+        tipo: validar_texto
+        nombre: Validar tienda Aurora
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'Aurora Boutique')]"
+          texto_esperado: Aurora Boutique
+      - orden: 7
+        tipo: capturar_evidencia
+        nombre: Captura dashboard autenticado
+        configuracion:
+          nombre: CP01_dashboard_aurora
+  - nombre: CP-02 Autenticacion incorrecta
+    modulo_objetivo: Autenticacion
+    prioridad: alta
+    pasos:
+      - orden: 1
+        tipo: navegar
+        nombre: Abrir login
+        configuracion:
+          ruta: /login
+      - orden: 2
+        tipo: escribir
+        nombre: Ingresar correo invalido
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="email"]
+          texto: usuario.invalido@example.test
+      - orden: 3
+        tipo: escribir
+        nombre: Ingresar contrasena invalida
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="password"]
+          texto: REEMPLAZAR_SECRETO_LOCAL
+      - orden: 4
+        tipo: hacer_clic
+        nombre: Enviar login
+        configuracion:
+          selector:
+            estrategia: css
+            valor: button[type="submit"]
+      - orden: 5
+        tipo: esperar_url
+        nombre: Validar permanencia en login
+        configuracion:
+          texto_url: /login
+          comparacion: contiene
+          timeout_segundos: 10
+      - orden: 6
+        tipo: capturar_evidencia
+        nombre: Captura rechazo login
+        configuracion:
+          nombre: CP02_rechazo_login
+  - nombre: CP-03 Navegacion entre modulos
+    modulo_objetivo: Navegacion
+    prioridad: alta
+    pasos:
+      - orden: 1
+        tipo: navegar
+        nombre: Abrir login
+        configuracion:
+          ruta: /login
+      - orden: 2
+        tipo: escribir
+        nombre: Ingresar correo propietario
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="email"]
+          texto: usuario@example.invalid
+      - orden: 3
+        tipo: escribir
+        nombre: Ingresar contrasena desde secreto
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="password"]
+          secreto: veltrix_owner_password
+      - orden: 4
+        tipo: hacer_clic
+        nombre: Enviar login
+        configuracion:
+          selector:
+            estrategia: css
+            valor: button[type="submit"]
+      - orden: 5
+        tipo: hacer_clic
+        nombre: Abrir ventas
+        configuracion:
+          selector:
+            estrategia: link_text
+            valor: Ventas
+      - orden: 6
+        tipo: validar_texto
+        nombre: Validar modulo ventas
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'ventas registradas')]"
+          texto_esperado: ventas registradas
+      - orden: 7
+        tipo: hacer_clic
+        nombre: Abrir inventario
+        configuracion:
+          selector:
+            estrategia: link_text
+            valor: Inventario
+      - orden: 8
+        tipo: validar_texto
+        nombre: Validar inventario
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'productos en catálogo')]"
+          texto_esperado: productos
+      - orden: 9
+        tipo: hacer_clic
+        nombre: Abrir clientes
+        configuracion:
+          selector:
+            estrategia: link_text
+            valor: Clientes
+      - orden: 10
+        tipo: validar_texto
+        nombre: Validar clientes
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'clientes registrados')]"
+          texto_esperado: clientes
+      - orden: 11
+        tipo: hacer_clic
+        nombre: Abrir categorias
+        configuracion:
+          selector:
+            estrategia: link_text
+            valor: Categorías
+      - orden: 12
+        tipo: validar_texto
+        nombre: Validar categorias
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'Organiza tu catálogo')]"
+          texto_esperado: Organiza
+      - orden: 13
+        tipo: capturar_evidencia
+        nombre: Captura navegacion
+        configuracion:
+          nombre: CP03_navegacion_modulos
+  - nombre: CP-11 Fallo funcional controlado
+    modulo_objetivo: Alertas
+    prioridad: alta
+    requiere_revision_humana: true
+    pasos:
+      - orden: 1
+        tipo: navegar
+        nombre: Abrir login
+        configuracion:
+          ruta: /login
+      - orden: 2
+        tipo: escribir
+        nombre: Ingresar correo propietario
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="email"]
+          texto: usuario@example.invalid
+      - orden: 3
+        tipo: escribir
+        nombre: Ingresar contrasena desde secreto
+        configuracion:
+          selector:
+            estrategia: css
+            valor: input[type="password"]
+          secreto: veltrix_owner_password
+      - orden: 4
+        tipo: hacer_clic
+        nombre: Enviar login
+        configuracion:
+          selector:
+            estrategia: css
+            valor: button[type="submit"]
+      - orden: 5
+        tipo: validar_texto
+        nombre: Validacion negativa controlada
+        configuracion:
+          selector:
+            estrategia: xpath
+            valor: "//*[contains(normalize-space(.), 'Texto funcional inexistente UVG')]"
+          texto_esperado: Texto funcional inexistente UVG
+          timeout_segundos: 5
+      - orden: 6
+        tipo: capturar_evidencia
+        nombre: Captura fallo controlado
+        configuracion:
+          nombre: CP11_fallo_funcional_controlado
+monitores:
+  - nombre: CP-08 Salud API Veltrix
+    tipo: http
+    configuracion:
+      url: http://127.0.0.1:8000/api/health
+      metodo: GET
+      estados_esperados: [200]
+      texto_esperado: ok
+  - nombre: CP-09 TCP backend Veltrix
+    tipo: tcp
+    configuracion:
+      host: 127.0.0.1
+      puerto: 8000
+      tiempo_espera: 5
+  - nombre: CP-09 TCP frontend Veltrix
+    tipo: tcp
+    configuracion:
+      host: 127.0.0.1
+      puerto: 5350
+      tiempo_espera: 5
+  - nombre: API catalogo publico Aurora
+    tipo: api
+    configuracion:
+      url: http://127.0.0.1:8000/api/public/aurora/products
+      metodo: GET
+      estados_esperados: [200]
+      tiempo_espera: 15
+  - nombre: CP-10 Falla controlada servicio auxiliar
+    tipo: api
+    configuracion:
+      url: http://127.0.0.1:8766/health
+      metodo: GET
+      estados_esperados: [200]
+      tiempo_espera: 3
+pipelines:
+  - nombre: Pipeline 01 Autenticacion y navegacion
+    detener_ante_fallo: false
+    pasos:
+      - orden: 1
+        tipo: caso_prueba
+        referencia: CP-01 Autenticacion exitosa propietario
+      - orden: 2
+        tipo: caso_prueba
+        referencia: CP-02 Autenticacion incorrecta
+      - orden: 3
+        tipo: caso_prueba
+        referencia: CP-03 Navegacion entre modulos
+  - nombre: Pipeline 02 Inventario ventas catalogo
+    detener_ante_fallo: false
+    pasos:
+      - orden: 1
+        tipo: monitor
+        referencia: API catalogo publico Aurora
+  - nombre: Pipeline 03 Monitoreo
+    detener_ante_fallo: false
+    pasos:
+      - orden: 1
+        tipo: monitor
+        referencia: CP-08 Salud API Veltrix
+      - orden: 2
+        tipo: monitor
+        referencia: CP-09 TCP backend Veltrix
+      - orden: 3
+        tipo: monitor
+        referencia: CP-09 TCP frontend Veltrix
+      - orden: 4
+        tipo: monitor
+        referencia: API catalogo publico Aurora
+      - orden: 5
+        tipo: monitor
+        referencia: CP-10 Falla controlada servicio auxiliar
+        continuar_si_falla: true
+  - nombre: Pipeline 04 Deteccion y alertas
+    detener_ante_fallo: false
+    pasos:
+      - orden: 1
+        tipo: caso_prueba
+        referencia: CP-11 Fallo funcional controlado
+programaciones: []
